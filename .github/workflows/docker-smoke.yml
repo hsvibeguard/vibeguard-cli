@@ -1,0 +1,32 @@
+name: Docker Smoke Test
+
+# Verifies the published GHCR image actually works end-to-end:
+# correct baked version, scanners present, and a real scan.
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull image
+        run: docker pull ghcr.io/hsvibeguard/vibeguard-cli:1.1.8
+
+      - name: Baked vibeguard version
+        run: docker run --rm ghcr.io/hsvibeguard/vibeguard-cli:1.1.8 --version
+
+      - name: Scanners available (doctor)
+        run: docker run --rm ghcr.io/hsvibeguard/vibeguard-cli:1.1.8 doctor
+
+      - name: Scan the repo (real run)
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/hsvibeguard/vibeguard-cli:1.1.8 \
+            scan /repo --ci --output json > out.json 2> err.txt || true
+          echo "::group::result"
+          echo "--- json head ---"; head -c 200 out.json
+          echo ""; echo "--- parsed ---"
+          python3 -c "import json; d=json.load(open('out.json')); print('score=', d.get('score'), 'grade=', d.get('grade'), 'findings=', len(d.get('findings', [])), 'scanners=', d.get('scanners_run'))" || echo "JSON PARSE FAILED"
+          echo "--- stderr tail ---"; tail -5 err.txt
+          echo "::endgroup::"
