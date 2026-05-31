@@ -1,0 +1,55 @@
+# VibeGuard Ignore File
+# Patterns to exclude from scanning (gitignore syntax)
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Test files (contain asserts and fake credentials for testing)
+tests/
+
+# Generated files
+*.min.js
+*.bundle.js
+
+# Cache directories (contain hashes that trigger false positives)
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.tox/
+.nox/
+*.pyc
+
+# Git internals (object hashes look like secrets)
+.git/
+
+# IDE and editor caches
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VibeGuard reports, cache, and patches (avoid scanning own output)
+vibeguard-report-*.html
+report.html
+*.sarif
+.vibeguard/cache/
+.vibeguard/patches/

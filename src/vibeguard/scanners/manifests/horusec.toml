@@ -1,0 +1,57 @@
+# Horusec Scanner Manifest
+# https://github.com/ZupIT/horusec
+
+[scanner]
+name = "horusec"
+display_name = "Horusec"
+version = "2.9.0-beta.3"
+tier = "differentiation"
+categories = ["security"]
+languages = ["python", "javascript", "typescript", "java", "go", "c", "c#", "ruby", "php", "kotlin", "swift", "dart", "elixir", "shell"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download", "docker"]
+
+[install.local]
+# Check if horusec is available locally
+check_command = "horusec version"
+binary_name = "horusec"
+
+[install.download]
+# Auto-download binary from GitHub releases
+# Horusec releases direct binaries (no archive)
+# Linux: horusec_linux_amd64, macOS: horusec_mac_amd64, Windows: horusec_windows_amd64.exe
+url_template = "https://github.com/ZupIT/horusec/releases/download/v{version}/horusec_{os}_{arch}"
+binary_name = "horusec"
+archive_type = "none"
+
+# macOS is labeled "mac" not "darwin" in Horusec releases
+[install.download.os_map]
+linux = "linux"
+darwin = "mac"
+windows = "windows"
+
+[install.docker]
+image = "horuszup/horusec-cli:latest"
+mount_mode = "ro"
+
+[execution]
+# Command template with placeholders
+# start: run analysis
+# -p: project path
+# -o json: output format
+# -O /dev/stdout: write to stdout
+# --disable-docker: don't use Docker for sub-scanners
+command = "horusec start -p {target} -o json -O /dev/stdout --disable-docker"
+timeout = 600
+output_format = "json"
+
+[execution.docker]
+command = "start -p /src -o json -O /dev/stdout --disable-docker"
+workdir = "/src"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.horusec"
+parser_function = "parse_output"

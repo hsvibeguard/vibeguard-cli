@@ -1,0 +1,48 @@
+# Gitleaks Scanner Manifest
+# https://github.com/gitleaks/gitleaks
+
+[scanner]
+name = "gitleaks"
+display_name = "Gitleaks"
+version = "8.18.4"
+tier = "core"
+categories = ["secrets"]
+languages = ["*"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download", "docker"]
+
+[install.local]
+# Check if gitleaks is available locally
+check_command = "gitleaks version"
+binary_name = "gitleaks"
+
+[install.download]
+# Auto-download binary from GitHub releases
+url_template = "https://github.com/gitleaks/gitleaks/releases/download/v{version}/gitleaks_{version}_{os}_{arch}.tar.gz"
+binary_name = "gitleaks"
+archive_type = "tar.gz"
+windows_archive_type = "zip"
+windows_arch = "x64"
+
+[install.docker]
+image = "zricethezav/gitleaks:latest"
+mount_mode = "ro"
+
+[execution]
+# Command template with placeholders
+# --no-git: scan files without requiring git history
+# -f json: output in JSON format
+command = "gitleaks detect --source {target} --no-git -f json"
+timeout = 300
+output_format = "json"
+
+[execution.docker]
+command = "detect --source /src --no-git -f json"
+workdir = "/src"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.gitleaks"
+parser_function = "parse_output"

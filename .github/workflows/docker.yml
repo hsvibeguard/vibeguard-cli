@@ -1,0 +1,66 @@
+# Build the all-in-one scanner image and push to GHCR + (optionally) Docker Hub.
+#
+# GHCR works out of the box (uses the built-in GITHUB_TOKEN).
+# Docker Hub requires two repo secrets: DOCKERHUB_USERNAME and DOCKERHUB_TOKEN.
+# If they are absent, the image still publishes to GHCR only.
+
+name: Docker
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # push to GHCR
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        if: ${{ env.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Compute version + tags
+        id: meta
+        run: |
+          if [ "${GITHUB_REF}" != "${GITHUB_REF#refs/tags/v}" ]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            VERSION="latest"
+          fi
+          TAGS="ghcr.io/hsvibeguard/vibeguard-cli:latest,ghcr.io/hsvibeguard/vibeguard-cli:${VERSION}"
+          if [ -n "${DOCKERHUB_TOKEN}" ]; then
+            TAGS="${TAGS},hsvibeguard/vibeguard-cli:latest,hsvibeguard/vibeguard-cli:${VERSION}"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Publishing tags: ${TAGS}"
+
+      - name: Build & push (amd64 + arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

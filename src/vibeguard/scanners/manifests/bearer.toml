@@ -1,0 +1,41 @@
+# Bearer Scanner Manifest
+# https://github.com/Bearer/bearer
+
+[scanner]
+name = "bearer"
+display_name = "Bearer"
+version = "1.46.4"
+tier = "differentiation"
+categories = ["security", "secrets"]
+languages = ["javascript", "typescript", "ruby", "java", "go", "php"]
+supported_os = ["linux", "darwin"]  # No Windows builds available
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download"]
+
+[install.local]
+# Check if bearer is available locally
+check_command = "bearer version"
+binary_name = "bearer"
+
+[install.download]
+# Auto-download binary from GitHub releases
+url_template = "https://github.com/Bearer/bearer/releases/download/v{version}/bearer_{version}_{os}_{arch}.tar.gz"
+binary_name = "bearer"
+archive_type = "tar.gz"
+# Note: Bearer has no Windows builds; only darwin and linux are available
+
+[execution]
+# Command template with placeholders
+# scan: run scan on target
+# --format json: output in JSON format
+# --quiet: suppress progress output
+command = "bearer scan {target} --format json --quiet"
+timeout = 600
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.bearer"
+parser_function = "parse_output"

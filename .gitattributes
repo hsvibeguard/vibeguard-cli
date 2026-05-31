@@ -1,0 +1,12 @@
+# Normalize the repo to LF. Critical: action.yml bash steps, Dockerfile RUN
+# lines, and workflow run-steps execute under bash on Linux runners and break
+# on CRLF line endings.
+* text=auto eol=lf
+*.py    text eol=lf
+*.sh    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.toml  text eol=lf
+Dockerfile text eol=lf
+*.svg   text eol=lf
+*.png   binary

@@ -1,0 +1,37 @@
+# Checkov Scanner Manifest
+# https://github.com/bridgecrewio/checkov
+# Infrastructure as Code (IaC) policy scanner
+
+[scanner]
+name = "checkov"
+display_name = "Checkov"
+version = "3.2.0"
+tier = "differentiation"
+categories = ["security", "iac", "misconfiguration"]
+languages = ["terraform", "cloudformation", "kubernetes", "dockerfile", "arm", "helm"]
+
+[install]
+# Checkov is a Python package - prefer pip install
+strategies = ["local", "pip"]
+
+[install.local]
+check_command = "checkov --version"
+binary_name = "checkov"
+
+[install.pip]
+package_name = "checkov"
+
+[execution]
+# -d: directory to scan
+# --output json: JSON output format
+# --quiet: suppress banner and progress
+# --compact: compact output format
+# --skip-download: don't download external modules (faster, more secure)
+command = "checkov -d {target} --output json --quiet --compact --skip-download"
+timeout = 600
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.checkov"
+parser_function = "parse_output"

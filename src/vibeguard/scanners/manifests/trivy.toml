@@ -1,0 +1,60 @@
+# Trivy Scanner Manifest
+# https://github.com/aquasecurity/trivy
+
+[scanner]
+name = "trivy"
+display_name = "Trivy"
+version = "0.69.1"
+tier = "core"
+categories = ["vulnerability", "sca"]
+languages = ["*"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download", "docker"]
+
+[install.local]
+# Check if trivy is available locally
+check_command = "trivy version"
+binary_name = "trivy"
+
+[install.download]
+# Auto-download binary from GitHub releases
+# Trivy naming: trivy_{version}_{os}-{arch}.tar.gz
+# e.g., trivy_0.69.1_macOS-ARM64.tar.gz, trivy_0.69.1_Linux-64bit.tar.gz
+url_template = "https://github.com/aquasecurity/trivy/releases/download/v{version}/trivy_{version}_{os}-{arch}.tar.gz"
+binary_name = "trivy"
+archive_type = "tar.gz"
+windows_archive_type = "zip"
+
+# Trivy uses non-standard platform names
+[install.download.os_map]
+linux = "Linux"
+darwin = "macOS"
+windows = "windows"
+
+[install.download.arch_map]
+amd64 = "64bit"
+arm64 = "ARM64"
+
+[install.docker]
+image = "aquasec/trivy:latest"
+mount_mode = "ro"
+
+[execution]
+# Command template with placeholders
+# fs: filesystem scan mode
+# --format json: output in JSON format
+# --scanners vuln: focus on vulnerability scanning
+command = "trivy fs --format json --scanners vuln {target}"
+timeout = 600
+output_format = "json"
+
+[execution.docker]
+command = "fs --format json --scanners vuln /src"
+workdir = "/src"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.trivy"
+parser_function = "parse_output"

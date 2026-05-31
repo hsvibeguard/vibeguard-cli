@@ -1,0 +1,31 @@
+# cargo-audit Scanner Manifest
+# https://github.com/rustsec/rustsec/tree/main/cargo-audit
+
+[scanner]
+name = "cargo_audit"
+display_name = "cargo-audit"
+version = "0.18.0"
+tier = "ecosystem"
+categories = ["vulnerability", "sca"]
+languages = ["rust"]
+
+[install]
+# cargo-audit requires cargo/rustup, typically installed if Rust project
+strategies = ["local"]
+
+[install.local]
+# Check if cargo-audit is available
+# Note: cargo-audit is a cargo subcommand
+check_command = "cargo audit --version"
+binary_name = "cargo"
+
+[execution]
+# --json outputs machine-readable JSON
+command = "cargo audit --json"
+timeout = 180
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.cargo_audit"
+parser_function = "parse_output"

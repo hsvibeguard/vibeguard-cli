@@ -1,0 +1,30 @@
+# VibeGuard pre-commit hook definition.
+#
+# Add to your .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/hsvibeguard/vibeguard-cli
+#       rev: v1.1.5
+#       hooks:
+#         - id: vibeguard
+#           # Scanners run inside pre-commit's isolated env, so declare the
+#           # pip-based ones you want here:
+#           additional_dependencies: ["semgrep", "bandit", "checkov"]
+#
+# Notes:
+# - VibeGuard's --ci mode does NOT auto-install scanners; whatever is in the
+#   hook environment is what runs. That's why pip scanners go in
+#   additional_dependencies above.
+# - Secret/binary scanners (gitleaks, trivy) aren't pip packages; install them
+#   on the machine if you want them in the local hook, or rely on the CI Action.
+# - A full-repo scan can be slow per-commit. For heavier setups, pin this to the
+#   push stage in your config:  default_install_hook_types: [pre-push]
+
+- id: vibeguard
+  name: VibeGuard security scan
+  description: Run VibeGuard unified security scanners and fail if the score drops below threshold
+  entry: vibeguard scan
+  language: python
+  pass_filenames: false
+  always_run: true
+  args: ["--ci", "--threshold", "70"]

@@ -1,0 +1,54 @@
+# Dockle Scanner Manifest
+# https://github.com/goodwithtech/dockle
+# Container image best practices and security scanner
+# NOTE: Dockle scans built Docker IMAGES, not Dockerfiles.
+# Requires --image flag with scan command.
+
+[scanner]
+name = "dockle"
+display_name = "Dockle"
+version = "0.4.14"
+tier = "differentiation"
+categories = ["security", "best-practice", "container"]
+languages = ["docker"]
+supported_os = ["linux", "darwin"]  # No Windows builds available
+
+[install]
+# Dockle is a Go binary - download from GitHub releases
+strategies = ["local", "download"]
+
+[install.local]
+check_command = "dockle --version"
+binary_name = "dockle"
+
+[install.download]
+# GitHub releases format: dockle_{version}_{OS}-{ARCH}.tar.gz
+# Uses capitalized OS names and hyphen separator
+# Linux: dockle_0.4.14_Linux-64bit.tar.gz
+# macOS: dockle_0.4.14_macOS-64bit.tar.gz / macOS-ARM64.tar.gz
+# Note: No Windows builds are published
+url_template = "https://github.com/goodwithtech/dockle/releases/download/v{version}/dockle_{version}_{os}-{arch}.tar.gz"
+binary_name = "dockle"
+archive_type = "tar.gz"
+
+# Dockle uses non-standard platform names
+[install.download.os_map]
+linux = "Linux"
+darwin = "macOS"
+
+[install.download.arch_map]
+amd64 = "64bit"
+arm64 = "ARM64"
+
+[execution]
+# -f json: JSON output format
+# --exit-code 0: don't fail on findings (we handle that)
+# {image} placeholder is replaced with --image value
+command = "dockle -f json --exit-code 0 {image}"
+timeout = 300
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.dockle"
+parser_function = "parse_output"

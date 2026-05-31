@@ -1,0 +1,41 @@
+# Gosec Scanner Manifest
+# https://github.com/securego/gosec
+
+[scanner]
+name = "gosec"
+display_name = "Gosec"
+version = "2.21.4"
+tier = "ecosystem"
+categories = ["security"]
+languages = ["go"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download"]
+
+[install.local]
+# Check if gosec is available locally
+check_command = "gosec --version"
+binary_name = "gosec"
+
+[install.download]
+# Auto-download binary from GitHub releases
+url_template = "https://github.com/securego/gosec/releases/download/v{version}/gosec_{version}_{os}_{arch}.tar.gz"
+binary_name = "gosec"
+archive_type = "tar.gz"
+# Note: gosec uses .tar.gz on all platforms including Windows
+
+[execution]
+# Command template with placeholders
+# -fmt=json: output in JSON format
+# -stdout: write JSON to stdout instead of file
+# Run from target directory
+command = "gosec -fmt=json -stdout ./..."
+timeout = 300
+output_format = "json"
+working_directory = "{target}"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.gosec"
+parser_function = "parse_output"

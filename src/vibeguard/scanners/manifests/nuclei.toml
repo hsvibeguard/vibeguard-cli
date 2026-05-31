@@ -1,0 +1,58 @@
+# Nuclei Scanner Manifest
+# https://github.com/projectdiscovery/nuclei
+#
+# IMPORTANT: This scanner is used for DAST (Dynamic Application Security Testing)
+# on running web applications. It sends HTTP requests to the target.
+#
+# Safety flags are configured to exclude dangerous templates:
+# - dos: Denial of Service attacks
+# - intrusive: Templates that modify target state
+# - bruteforce: Password brute forcing
+# - fuzzing: Aggressive fuzzing attacks
+
+[scanner]
+name = "nuclei"
+display_name = "Nuclei"
+version = "3.2.0"
+tier = "differentiation"
+categories = ["vulnerability", "dast"]
+languages = ["*"]
+
+[install]
+# Priority order for installation strategies
+# Note: Docker not included for DAST to avoid network complexity
+strategies = ["local", "download"]
+
+[install.local]
+# Check if nuclei is available locally
+check_command = "nuclei -version"
+binary_name = "nuclei"
+
+[install.download]
+# Auto-download binary from GitHub releases
+# Nuclei uses zip archives for all platforms
+url_template = "https://github.com/projectdiscovery/nuclei/releases/download/v{version}/nuclei_{version}_{os}_{arch}.zip"
+binary_name = "nuclei"
+archive_type = "zip"
+windows_archive_type = "zip"
+windows_arch = "amd64"
+darwin_arch = "arm64"
+
+[execution]
+# Command template for DAST scanning
+# SAFETY FLAGS:
+#   -exclude-tags: Excludes dangerous template categories
+#   -rate-limit: Controls request rate to prevent abuse
+#   -timeout: Limits time per request
+#   -silent: Reduces noise in output
+#   -j: Outputs JSONL format (one JSON object per line)
+#
+# The {target} placeholder is replaced with the target URL
+command = "nuclei -target {target} -j -silent -exclude-tags dos,intrusive,bruteforce,fuzzing -rate-limit 50 -timeout 10"
+timeout = 300
+output_format = "jsonl"
+
+[output]
+format = "jsonl"
+parser_module = "vibeguard.scanners.parsers.nuclei"
+parser_function = "parse_output"

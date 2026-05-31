@@ -1,0 +1,39 @@
+# Bandit Scanner Manifest
+# https://github.com/PyCQA/bandit
+
+[scanner]
+name = "bandit"
+display_name = "Bandit"
+version = "1.7.7"
+tier = "core"
+categories = ["security", "sast"]
+languages = ["python"]
+
+[install]
+# Bandit is a pip package, so local install is primary strategy
+# Falls back to pip install if not available
+strategies = ["local", "pip"]
+
+[install.local]
+# Check if bandit is available locally (installed via pip)
+check_command = "bandit --version"
+binary_name = "bandit"
+
+[install.pip]
+# Auto-install bandit via pip if not available
+package_name = "bandit"
+version = "1.7.7"
+
+[execution]
+# Command template with placeholders
+# -r: recursive scan
+# -f json: output in JSON format
+# -q: quiet mode (no progress bars)
+command = "bandit -r {target} -f json -q"
+timeout = 300
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.bandit"
+parser_function = "parse_output"

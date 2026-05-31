@@ -1,0 +1,43 @@
+# Semgrep Scanner Manifest
+# https://semgrep.dev/
+
+[scanner]
+name = "semgrep"
+display_name = "Semgrep"
+version = ">=1.0.0"
+tier = "core"
+categories = ["security", "sast"]
+languages = ["python", "javascript", "typescript", "java", "go", "ruby", "c", "cpp", "csharp", "php", "rust", "kotlin", "scala", "swift"]
+
+[install]
+# Priority order for installation strategies
+# Try local first, then pip install, then Docker as fallback
+strategies = ["local", "pip", "docker"]
+
+[install.local]
+# Check if semgrep is available locally
+check_command = "semgrep --version"
+binary_name = "semgrep"
+
+[install.pip]
+# Auto-install semgrep via pip if not available
+package_name = "semgrep"
+
+[install.docker]
+image = "returntocorp/semgrep:latest"
+mount_mode = "ro"
+
+[execution]
+# Command template with placeholders
+command = "semgrep scan --config auto --json {target}"
+timeout = 300
+output_format = "json"
+
+[execution.docker]
+command = "semgrep scan --config auto --json /src"
+workdir = "/src"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.semgrep"
+parser_function = "parse_output"

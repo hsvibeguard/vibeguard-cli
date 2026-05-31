@@ -1,0 +1,36 @@
+# pip-audit Scanner Manifest
+# https://github.com/pypa/pip-audit
+
+[scanner]
+name = "pip_audit"
+display_name = "pip-audit"
+version = "2.7.0"
+tier = "ecosystem"
+categories = ["vulnerability", "sca"]
+languages = ["python"]
+
+[install]
+# pip-audit can be installed via pip if not already available
+strategies = ["local", "pip"]
+
+[install.local]
+# Check if pip-audit is available
+check_command = "pip-audit --version"
+binary_name = "pip-audit"
+
+[install.pip]
+# Auto-install pip-audit via pip if not available
+package_name = "pip-audit"
+
+[execution]
+# --format json outputs machine-readable JSON
+# --desc includes vulnerability descriptions
+# --strict fails on vulnerabilities (we handle exit codes ourselves)
+command = "pip-audit --format json --desc"
+timeout = 300
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.pip_audit"
+parser_function = "parse_output"

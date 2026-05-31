@@ -1,0 +1,31 @@
+# npm audit Scanner Manifest
+# https://docs.npmjs.com/cli/v10/commands/npm-audit
+
+[scanner]
+name = "npm_audit"
+display_name = "npm audit"
+version = "10.0.0"
+tier = "ecosystem"
+categories = ["vulnerability", "sca"]
+languages = ["javascript", "typescript"]
+
+[install]
+# npm is typically bundled with Node.js, no download needed
+strategies = ["local"]
+
+[install.local]
+# Check if npm is available
+check_command = "npm --version"
+binary_name = "npm"
+
+[execution]
+# --json outputs machine-readable JSON
+# --audit-level info ensures all severities are reported
+command = "npm audit --json"
+timeout = 180
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.npm_audit"
+parser_function = "parse_output"

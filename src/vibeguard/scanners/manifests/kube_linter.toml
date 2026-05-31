@@ -1,0 +1,46 @@
+# kube-linter Scanner Manifest
+# https://github.com/stackrox/kube-linter
+
+[scanner]
+name = "kube-linter"
+display_name = "kube-linter"
+version = "0.7.1"
+tier = "differentiation"
+categories = ["misconfiguration", "security"]
+languages = ["kubernetes", "helm"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download"]
+
+[install.local]
+# Check if kube-linter is available locally
+check_command = "kube-linter version"
+binary_name = "kube-linter"
+
+[install.download]
+# Auto-download binary from GitHub releases
+# kube-linter naming: kube-linter-{os}.tar.gz (amd64) or kube-linter-{os}_arm64.tar.gz (arm64)
+# For amd64, there is no arch suffix in the asset name
+url_template = "https://github.com/stackrox/kube-linter/releases/download/v{version}/kube-linter-{os}{arch}.tar.gz"
+binary_name = "kube-linter"
+archive_type = "tar.gz"
+# Note: Windows .tar.gz archives are available (not .zip)
+
+# amd64 has no arch suffix, arm64 uses "_arm64"
+[install.download.arch_map]
+amd64 = ""
+arm64 = "_arm64"
+
+[execution]
+# Command template with placeholders
+# lint: lint Kubernetes manifests
+# --format json: output in JSON format
+command = "kube-linter lint {target} --format json"
+timeout = 300
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.kube_linter"
+parser_function = "parse_output"

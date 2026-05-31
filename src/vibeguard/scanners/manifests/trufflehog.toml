@@ -1,0 +1,48 @@
+# TruffleHog Scanner Manifest
+# https://github.com/trufflesecurity/trufflehog
+
+[scanner]
+name = "trufflehog"
+display_name = "TruffleHog"
+version = "3.63.7"
+tier = "core"
+categories = ["secrets"]
+languages = ["*"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download", "docker"]
+
+[install.local]
+# Check if trufflehog is available locally
+check_command = "trufflehog --version"
+binary_name = "trufflehog"
+
+[install.download]
+# Auto-download binary from GitHub releases
+# TruffleHog uses tar.gz on all platforms including Windows
+url_template = "https://github.com/trufflesecurity/trufflehog/releases/download/v{version}/trufflehog_{version}_{os}_{arch}.tar.gz"
+binary_name = "trufflehog"
+archive_type = "tar.gz"
+
+[install.docker]
+image = "trufflesecurity/trufflehog:latest"
+mount_mode = "ro"
+
+[execution]
+# Command template with placeholders
+# filesystem: scan local files (not git history)
+# --json: output in JSON lines format
+# --no-update: don't check for updates
+command = "trufflehog filesystem {target} --json --no-update"
+timeout = 300
+output_format = "jsonl"
+
+[execution.docker]
+command = "filesystem /src --json --no-update"
+workdir = "/src"
+
+[output]
+format = "jsonl"
+parser_module = "vibeguard.scanners.parsers.trufflehog"
+parser_function = "parse_output"

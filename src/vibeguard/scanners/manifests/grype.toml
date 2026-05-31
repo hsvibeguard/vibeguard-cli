@@ -1,0 +1,40 @@
+# Grype Scanner Manifest
+# https://github.com/anchore/grype
+
+[scanner]
+name = "grype"
+display_name = "Grype"
+version = "0.86.1"
+tier = "differentiation"
+categories = ["vulnerability", "sca"]
+languages = ["*"]
+
+[install]
+# Priority order for installation strategies
+strategies = ["local", "download"]
+
+[install.local]
+# Check if grype is available locally
+check_command = "grype version"
+binary_name = "grype"
+
+[install.download]
+# Auto-download binary from GitHub releases
+url_template = "https://github.com/anchore/grype/releases/download/v{version}/grype_{version}_{os}_{arch}.tar.gz"
+binary_name = "grype"
+archive_type = "tar.gz"
+windows_archive_type = "zip"
+
+[execution]
+# Command template with placeholders
+# dir:{target}: scan directory
+# -o json: output in JSON format
+# --quiet: suppress progress bars
+command = "grype dir:{target} -o json --quiet"
+timeout = 600
+output_format = "json"
+
+[output]
+format = "json"
+parser_module = "vibeguard.scanners.parsers.grype"
+parser_function = "parse_output"

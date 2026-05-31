@@ -1,0 +1,252 @@
+# VibeGuard GitHub Action
+# Unified security scanner orchestrator for your repository.
+#
+# Usage in your workflow:
+#   - uses: hsvibeguard/vibeguard-cli@v1
+#     with:
+#       path: '.'
+#       scanners: 'broad'     # core | broad | full
+#       threshold: 70
+#       sarif_upload: true
+
+name: 'VibeGuard Security Scan'
+description: 'Run multiple security scanners (SAST, secrets, deps, IaC) with one Action and upload SARIF to GitHub Code Scanning'
+author: 'VibeGuard'
+
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  path:
+    description: 'Path to scan (default: current directory)'
+    required: false
+    default: '.'
+  scanners:
+    description: 'Scanner set to install and run: core (semgrep, bandit, gitleaks), broad (+ checkov, trivy, trufflehog), or full (+ grype)'
+    required: false
+    default: 'broad'
+  threshold:
+    description: 'Minimum score threshold (0-100). Fails if score is below this.'
+    required: false
+    default: '0'
+  sarif_upload:
+    description: 'Upload SARIF results to GitHub Code Scanning'
+    required: false
+    default: 'true'
+  sarif_file:
+    description: 'Path for SARIF output file'
+    required: false
+    default: 'vibeguard-results.sarif'
+  json_file:
+    description: 'Path for JSON output file (used to extract metrics)'
+    required: false
+    default: 'vibeguard-results.json'
+  badge_path:
+    description: 'Path to save badge SVG (optional)'
+    required: false
+    default: ''
+  python_version:
+    description: 'Python version to use'
+    required: false
+    default: '3.11'
+  fail_on_findings:
+    description: 'Fail the workflow if any findings are detected'
+    required: false
+    default: 'false'
+
+outputs:
+  score:
+    description: 'Security score (0-100)'
+    value: ${{ steps.parse.outputs.score }}
+  grade:
+    description: 'Security grade (A+, A, B, C, D, F)'
+    value: ${{ steps.parse.outputs.grade }}
+  findings_count:
+    description: 'Total number of findings'
+    value: ${{ steps.parse.outputs.findings_count }}
+  critical_count:
+    description: 'Number of critical findings'
+    value: ${{ steps.parse.outputs.critical_count }}
+  high_count:
+    description: 'Number of high findings'
+    value: ${{ steps.parse.outputs.high_count }}
+  medium_count:
+    description: 'Number of medium findings'
+    value: ${{ steps.parse.outputs.medium_count }}
+  low_count:
+    description: 'Number of low findings'
+    value: ${{ steps.parse.outputs.low_count }}
+  exit_code:
+    description: 'Exit code from scan (0=clean, 1=findings, 2=error, 10=threshold)'
+    value: ${{ steps.scan.outputs.exit_code }}
+  sarif_file:
+    description: 'Path to SARIF output file'
+    value: ${{ inputs.sarif_file }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+
+    # VibeGuard's --ci mode is deterministic: it does NOT auto-install scanners.
+    # So the Action installs a PINNED scanner set itself. This is what makes
+    # `vibeguard scan . --ci` actually produce findings (not an empty 100/A+).
+    - name: Install VibeGuard + scanners
+      shell: bash
+      env:
+        INPUT_SCANNERS: ${{ inputs.scanners }}
+      run: |
+        set -euo pipefail
+        python -m pip install --upgrade pip
+        pip install vibeguard-cli
+
+        # Pinned binary scanner versions (deterministic CI)
+        GITLEAKS_VERSION="8.18.4"
+        TRIVY_VERSION="0.69.1"
+        TRUFFLEHOG_VERSION="3.63.7"
+        GRYPE_VERSION="0.86.1"
+
+        install_gitleaks() {
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+        }
+        install_trivy() {
+          curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin trivy
+        }
+        install_trufflehog() {
+          curl -sSfL "https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin trufflehog
+        }
+        install_grype() {
+          curl -sSfL "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/grype_${GRYPE_VERSION}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin grype
+        }
+
+        case "${INPUT_SCANNERS}" in
+          core)
+            pip install semgrep bandit
+            install_gitleaks
+            ;;
+          full)
+            pip install semgrep bandit checkov
+            install_gitleaks; install_trivy; install_trufflehog; install_grype
+            ;;
+          broad|*)
+            pip install semgrep bandit checkov
+            install_gitleaks; install_trivy; install_trufflehog
+            ;;
+        esac
+
+        echo "Installed scanner set: ${INPUT_SCANNERS}"
+        vibeguard doctor || true
+
+    - name: Run VibeGuard Scan
+      id: scan
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_THRESHOLD: ${{ inputs.threshold }}
+        INPUT_SARIF_FILE: ${{ inputs.sarif_file }}
+        INPUT_JSON_FILE: ${{ inputs.json_file }}
+        INPUT_BADGE_PATH: ${{ inputs.badge_path }}
+      run: |
+        set +e
+
+        # Build command using environment variables to prevent shell injection
+        CMD="vibeguard scan \"${INPUT_PATH}\" --ci"
+        CMD="$CMD --sarif-file \"${INPUT_SARIF_FILE}\""
+        CMD="$CMD --output json"
+
+        if [ "${INPUT_THRESHOLD}" != "0" ]; then
+          CMD="$CMD --threshold \"${INPUT_THRESHOLD}\""
+        fi
+
+        if [ -n "${INPUT_BADGE_PATH}" ]; then
+          CMD="$CMD --badge \"${INPUT_BADGE_PATH}\""
+        fi
+
+        echo "Running: $CMD"
+        eval "$CMD" > "${INPUT_JSON_FILE}" 2>&1
+        EXIT_CODE=$?
+
+        echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+        # Exit codes: 0=clean, 1=findings, 2=scan error, 10=below threshold
+        exit 0
+
+    - name: Parse Results
+      id: parse
+      shell: bash
+      env:
+        INPUT_JSON_FILE: ${{ inputs.json_file }}
+      run: |
+        JSON_FILE="${INPUT_JSON_FILE}"
+
+        if [ -f "$JSON_FILE" ] && command -v jq &> /dev/null; then
+          SCORE=$(jq -r '.score // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+          GRADE=$(jq -r '.grade // "F"' "$JSON_FILE" 2>/dev/null || echo "F")
+          FINDINGS=$(jq -r '.findings | length // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+          CRITICAL=$(jq -r '.counts.critical // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+          HIGH=$(jq -r '.counts.high // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+          MEDIUM=$(jq -r '.counts.medium // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+          LOW=$(jq -r '.counts.low // 0' "$JSON_FILE" 2>/dev/null || echo "0")
+
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "grade=$GRADE" >> $GITHUB_OUTPUT
+          echo "findings_count=$FINDINGS" >> $GITHUB_OUTPUT
+          echo "critical_count=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high_count=$HIGH" >> $GITHUB_OUTPUT
+          echo "medium_count=$MEDIUM" >> $GITHUB_OUTPUT
+          echo "low_count=$LOW" >> $GITHUB_OUTPUT
+        else
+          echo "score=0" >> $GITHUB_OUTPUT
+          echo "grade=unknown" >> $GITHUB_OUTPUT
+          echo "findings_count=0" >> $GITHUB_OUTPUT
+          echo "critical_count=0" >> $GITHUB_OUTPUT
+          echo "high_count=0" >> $GITHUB_OUTPUT
+          echo "medium_count=0" >> $GITHUB_OUTPUT
+          echo "low_count=0" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check Results
+      shell: bash
+      env:
+        SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit_code }}
+        SCAN_SCORE: ${{ steps.parse.outputs.score }}
+        SCAN_GRADE: ${{ steps.parse.outputs.grade }}
+        SCAN_FINDINGS: ${{ steps.parse.outputs.findings_count }}
+        INPUT_FAIL_ON_FINDINGS: ${{ inputs.fail_on_findings }}
+        INPUT_THRESHOLD: ${{ inputs.threshold }}
+      run: |
+        echo "VibeGuard Results: Score=$SCAN_SCORE ($SCAN_GRADE), Findings=$SCAN_FINDINGS"
+
+        if [ "$SCAN_EXIT_CODE" = "0" ]; then
+          echo "No security findings detected"
+        elif [ "$SCAN_EXIT_CODE" = "1" ]; then
+          echo "Security findings detected"
+          if [ "$INPUT_FAIL_ON_FINDINGS" == "true" ]; then
+            echo "::error::Security findings detected (fail_on_findings=true)"
+            exit 1
+          fi
+        elif [ "$SCAN_EXIT_CODE" = "10" ]; then
+          echo "::error::Score $SCAN_SCORE is below threshold ($INPUT_THRESHOLD)"
+          exit 1
+        elif [ "$SCAN_EXIT_CODE" = "2" ]; then
+          echo "::warning::Scan completed with errors (partial scan)"
+        else
+          echo "::error::Scan failed with exit code $SCAN_EXIT_CODE"
+          exit "$SCAN_EXIT_CODE"
+        fi
+
+    - name: Upload SARIF to GitHub Code Scanning
+      if: inputs.sarif_upload == 'true' && always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif_file }}
+        category: 'vibeguard'
+      continue-on-error: true
