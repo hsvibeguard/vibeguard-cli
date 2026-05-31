@@ -1,0 +1,138 @@
+{
+  "repo_root": "/repo",
+  "started_at": "2026-05-31T19:49:39.684464",
+  "finished_at": "2026-05-31T19:51:54.611240",
+  "findings": [
+    {
+      "scanner": "bandit",
+      "rule_id": "B605",
+      "severity": "critical",
+      "category": "security",
+      "title": "Start Process With A Shell",
+      "message": "Starting a process with a shell, possible injection detected, security issue.",
+      "file_path": "/repo/app.py",
+      "line_start": 6,
+      "line_end": 6,
+      "cwe": "CWE-78",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b605_start_process_with_a_shell.html"
+      ],
+      "code_snippet": "5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)",
+      "fingerprint": "B605:/repo/app.py:6",
+      "triage_status": "actionable",
+      "triage_reason": "none",
+      "path_class": "source",
+      "confidence": 1.0,
+      "id": "a4b21ba5c0b0953a"
+    },
+    {
+      "scanner": "bandit",
+      "rule_id": "B105",
+      "severity": "low",
+      "category": "security",
+      "title": "Hardcoded Password String",
+      "message": "Possible hardcoded password: 'hunter2'",
+      "file_path": "/repo/app.py",
+      "line_start": 5,
+      "line_end": 5,
+      "cwe": "CWE-259",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+      ],
+      "code_snippet": "4 def run(cmd):\n5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)",
+      "fingerprint": "B105:/repo/app.py:5",
+      "triage_status": "actionable",
+      "triage_reason": "none",
+      "path_class": "source",
+      "confidence": 1.0,
+      "id": "e47cedec55820951"
+    }
+  ],
+  "scanners_run": [
+    "semgrep",
+    "gitleaks",
+    "trivy",
+    "bandit",
+    "trufflehog",
+    "gosec",
+    "checkov",
+    "grype",
+    "bearer",
+    "horusec"
+  ],
+  "scanners_skipped": [
+    "npm_audit",
+    "pip_audit",
+    "cargo_audit",
+    "kube_linter",
+    "dockle"
+  ],
+  "partial": true,
+  "actionable_findings": [
+    {
+      "scanner": "bandit",
+      "rule_id": "B605",
+      "severity": "critical",
+      "category": "security",
+      "title": "Start Process With A Shell",
+      "message": "Starting a process with a shell, possible injection detected, security issue.",
+      "file_path": "/repo/app.py",
+      "line_start": 6,
+      "line_end": 6,
+      "cwe": "CWE-78",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b605_start_process_with_a_shell.html"
+      ],
+      "code_snippet": "5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)",
+      "fingerprint": "B605:/repo/app.py:6",
+      "triage_status": "actionable",
+      "triage_reason": "none",
+      "path_class": "source",
+      "confidence": 1.0,
+      "id": "a4b21ba5c0b0953a"
+    },
+    {
+      "scanner": "bandit",
+      "rule_id": "B105",
+      "severity": "low",
+      "category": "security",
+      "title": "Hardcoded Password String",
+      "message": "Possible hardcoded password: 'hunter2'",
+      "file_path": "/repo/app.py",
+      "line_start": 5,
+      "line_end": 5,
+      "cwe": "CWE-259",
+      "references": [
+        "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+      ],
+      "code_snippet": "4 def run(cmd):\n5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)",
+      "fingerprint": "B105:/repo/app.py:5",
+      "triage_status": "actionable",
+      "triage_reason": "none",
+      "path_class": "source",
+      "confidence": 1.0,
+      "id": "e47cedec55820951"
+    }
+  ],
+  "needs_review_findings": [],
+  "ignored_findings": [],
+  "actionable_score": 78,
+  "raw_score": 78,
+  "noise_ratio": 0.0,
+  "counts": {
+    "critical": 1,
+    "high": 0,
+    "medium": 0,
+    "low": 1,
+    "info": 0
+  },
+  "total_counts": {
+    "critical": 1,
+    "high": 0,
+    "medium": 0,
+    "low": 1,
+    "info": 0
+  },
+  "score": 78,
+  "grade": "B"
+}

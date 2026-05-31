@@ -15,3 +15,7 @@ Tuning:
 - `scanners:` — `core` (fast: Semgrep + Bandit + Gitleaks), `broad` (default), or `full`.
 - `threshold:` — fail the build if the security score drops below this (0 = never fail).
   Start at `0` to establish a baseline, then raise it once you've triaged.
+
+## Sample output
+A real scan of a tiny vulnerable app, so you can see the shape of the results:
+[`sample-report.json`](./sample-report.json) · [`sample-report.sarif`](./sample-report.sarif) · [`sample-report.html`](./sample-report.html)

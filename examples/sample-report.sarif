@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "VibeGuard",
+          "semanticVersion": "1.1.8",
+          "informationUri": "https://github.com/vibeguard/vibeguard-cli",
+          "rules": [
+            {
+              "id": "B605",
+              "name": "Start Process With A Shell",
+              "shortDescription": {
+                "text": "Start Process With A Shell"
+              },
+              "fullDescription": {
+                "text": "Starting a process with a shell, possible injection detected, security issue."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.0",
+                "tags": [
+                  "security",
+                  "bandit",
+                  "external/cwe/CWE-78"
+                ]
+              },
+              "helpUri": "https://bandit.readthedocs.io/en/1.9.4/plugins/b605_start_process_with_a_shell.html"
+            },
+            {
+              "id": "B105",
+              "name": "Hardcoded Password String",
+              "shortDescription": {
+                "text": "Hardcoded Password String"
+              },
+              "fullDescription": {
+                "text": "Possible hardcoded password: 'hunter2'"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "3.0",
+                "tags": [
+                  "security",
+                  "bandit",
+                  "external/cwe/CWE-259"
+                ]
+              },
+              "helpUri": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html"
+            }
+          ]
+        },
+        "extensions": [
+          {
+            "name": "semgrep",
+            "version": "1.0.0"
+          },
+          {
+            "name": "gitleaks",
+            "version": "1.0.0"
+          },
+          {
+            "name": "trivy",
+            "version": "1.0.0"
+          },
+          {
+            "name": "bandit",
+            "version": "1.0.0"
+          },
+          {
+            "name": "trufflehog",
+            "version": "1.0.0"
+          },
+          {
+            "name": "gosec",
+            "version": "1.0.0"
+          },
+          {
+            "name": "checkov",
+            "version": "1.0.0"
+          },
+          {
+            "name": "grype",
+            "version": "1.0.0"
+          },
+          {
+            "name": "bearer",
+            "version": "1.0.0"
+          },
+          {
+            "name": "horusec",
+            "version": "1.0.0"
+          }
+        ]
+      },
+      "invocations": [
+        {
+          "executionSuccessful": false,
+          "startTimeUtc": "2026-05-31T19:53:06.948353Z",
+          "endTimeUtc": "2026-05-31T19:55:12.080473Z"
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "B605",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Starting a process with a shell, possible injection detected, security issue."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app.py"
+                },
+                "region": {
+                  "startLine": 6,
+                  "endLine": 6,
+                  "startColumn": 1,
+                  "snippet": {
+                    "text": "5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "a4b21ba5c0b0953a"
+          }
+        },
+        {
+          "ruleId": "B105",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Possible hardcoded password: 'hunter2'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app.py"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 5,
+                  "startColumn": 1,
+                  "snippet": {
+                    "text": "4 def run(cmd):\n5     password = \"hunter2\"          # hardcoded secret (Bandit B105)\n6     os.system(\"echo \" + cmd)     # shell injection (Bandit B605)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "e47cedec55820951"
+          }
+        }
+      ]
+    }
+  ]
+}
