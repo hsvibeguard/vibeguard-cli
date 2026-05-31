@@ -1,0 +1,33 @@
+name: Make Demo GIF
+
+# One-off (run manually): renders the README hero GIF on Linux, where terminal
+# recording is reliable. Download the "demo-gif" artifact and commit it to docs/.
+on:
+  workflow_dispatch:
+
+jobs:
+  gif:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up VibeGuard + core scanners + a sample
+        run: |
+          python -m pip install --quiet --upgrade pip
+          pip install --quiet vibeguard-cli semgrep bandit
+          GL=8.18.4; curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GL}/gitleaks_${GL}_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
+          TV=0.70.0; curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TV}/trivy_${TV}_Linux-64bit.tar.gz" | sudo tar -xz -C /usr/local/bin trivy
+          TH=3.63.7; curl -sSfL "https://github.com/trufflesecurity/trufflehog/releases/download/v${TH}/trufflehog_${TH}_linux_amd64.tar.gz" | sudo tar -xz -C /usr/local/bin trufflehog
+          mkdir -p /tmp/vgdemo
+          printf 'import os\n\n# hardcoded secret\npassword = "hunter2"\n\n\ndef run(user_cmd):\n    # shell injection\n    os.system("echo " + user_cmd)\n' > /tmp/vgdemo/app.py
+          vibeguard --version
+
+      - name: Render GIF
+        uses: charmbracelet/vhs-action@v2
+        with:
+          path: .github/vhs/demo.tape
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo-gif
+          path: demo.gif
