@@ -160,7 +160,7 @@ def to_sarif(result: ScanResult, include_suppressed: bool = False) -> dict[str, 
                     "driver": {
                         "name": "VibeGuard",
                         "semanticVersion": __version__,
-                        "informationUri": "https://github.com/vibeguard/vibeguard-cli",
+                        "informationUri": "https://github.com/hsvibeguard/vibeguard-cli",
                         "rules": rules,
                     },
                     "extensions": [

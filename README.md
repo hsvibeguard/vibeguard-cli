@@ -8,7 +8,7 @@
 
 **Unified security scanner orchestrator for local repositories.**
 
-Run multiple security scanners with one command, get normalized findings, a security score, and AI-powered fix suggestions.
+Run **Semgrep, Bandit, Checkov, Gitleaks, Trivy & TruffleHog** with one command — plus ecosystem scanners auto-detected per repo — for one normalized score, deduplicated findings, SARIF for GitHub Code Scanning, and AI-powered fix suggestions.
 
 ## Features
 
@@ -94,7 +94,7 @@ jobs:
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/hsvibeguard/vibeguard-cli
-    rev: v1.1.8
+    rev: v1.1.9
     hooks:
       - id: vibeguard
         additional_dependencies: ["semgrep", "bandit", "checkov"]
