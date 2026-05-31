@@ -18,3 +18,25 @@ jobs:
         with:
           scanners: broad
           threshold: 0        # report only; never fail the dogfood run
+
+      - name: Inspect generated SARIF (diagnose 0-results)
+        if: always()
+        run: |
+          echo "::group::SARIF inspection"
+          echo "--- originalUriBaseIds present? (expect 0 on 1.1.7) ---"
+          grep -c "originalUriBaseIds" vibeguard-results.sarif || echo 0
+          echo "--- distinct artifactLocation uris ---"
+          grep -oE '"uri": "[^"]*"' vibeguard-results.sarif | sort -u | head -12
+          echo "--- counts + first result object ---"
+          python3 -c "import json; rn=json.load(open('vibeguard-results.sarif'))['runs'][0]; print('results:', len(rn['results']), '| rules:', len(rn['tool']['driver']['rules'])); print('FIRST:', json.dumps(rn['results'][0])[:800] if rn['results'] else 'no results')"
+          echo "--- analyzed commit/ref ---"
+          echo "GITHUB_SHA=$GITHUB_SHA  GITHUB_REF=$GITHUB_REF"
+          echo "::endgroup::"
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibeguard-output
+          path: vibeguard-results.sarif
+          if-no-files-found: warn
