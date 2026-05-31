@@ -154,6 +154,9 @@ runs:
         INPUT_SARIF_FILE: ${{ inputs.sarif_file }}
         INPUT_JSON_FILE: ${{ inputs.json_file }}
         INPUT_BADGE_PATH: ${{ inputs.badge_path }}
+        # Force a wide console so Rich does not hard-wrap --output json at 80
+        # cols on the (non-TTY) runner, which corrupts the emitted JSON.
+        COLUMNS: "200000"
       run: |
         set +e
 
@@ -170,11 +173,19 @@ runs:
           CMD="$CMD --badge \"${INPUT_BADGE_PATH}\""
         fi
 
+        # Capture JSON on stdout; keep stderr OUT of the JSON file
         echo "Running: $CMD"
-        eval "$CMD" > "${INPUT_JSON_FILE}" 2>&1
+        eval "$CMD" > "${INPUT_JSON_FILE}" 2> scan-stderr.log
         EXIT_CODE=$?
 
         echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+        echo "::group::VibeGuard scan diagnostics"
+        echo "exit code: $EXIT_CODE"
+        ls -la "${INPUT_SARIF_FILE}" "${INPUT_JSON_FILE}" 2>&1 || true
+        echo "--- json head ---"; head -c 400 "${INPUT_JSON_FILE}" 2>/dev/null || true
+        echo ""; echo "--- stderr tail ---"; tail -20 scan-stderr.log 2>/dev/null || echo "(none)"
+        echo "::endgroup::"
 
         # Exit codes: 0=clean, 1=findings, 2=scan error, 10=below threshold
         exit 0
