@@ -15,8 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       curl ca-certificates git tar \
     && rm -rf /var/lib/apt/lists/*
 
-# Python-based scanners + VibeGuard itself
-RUN pip install --no-cache-dir vibeguard-cli semgrep bandit checkov
+# VibeGuard in the main env; scanners isolated via pipx because checkov pins
+# click==8.1.8, incompatible with vibeguard's typer (needs click>=8.2).
+ENV PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin
+RUN pip install --no-cache-dir vibeguard-cli pipx \
+    && pipx install semgrep \
+    && pipx install bandit \
+    && pipx install checkov
 
 # Pinned binary scanners (multi-arch aware: amd64 + arm64)
 RUN set -eux; \

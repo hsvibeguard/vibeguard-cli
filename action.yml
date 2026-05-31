@@ -102,7 +102,15 @@ runs:
       run: |
         set -euo pipefail
         python -m pip install --upgrade pip
+
+        # VibeGuard in the runner's main env (its typer needs click>=8.2).
         pip install vibeguard-cli
+
+        # Scanners go in ISOLATED pipx envs: checkov pins click==8.1.8, which
+        # breaks vibeguard's typer (import crash) if installed in the same env.
+        python -m pip install --upgrade pipx
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        export PATH="$HOME/.local/bin:$PATH"
 
         # Pinned binary scanner versions (deterministic CI)
         GITLEAKS_VERSION="8.18.4"
@@ -129,15 +137,15 @@ runs:
 
         case "${INPUT_SCANNERS}" in
           core)
-            pip install semgrep bandit
+            pipx install semgrep; pipx install bandit
             install_gitleaks
             ;;
           full)
-            pip install semgrep bandit checkov
+            pipx install semgrep; pipx install bandit; pipx install checkov
             install_gitleaks; install_trivy; install_trufflehog; install_grype
             ;;
           broad|*)
-            pip install semgrep bandit checkov
+            pipx install semgrep; pipx install bandit; pipx install checkov
             install_gitleaks; install_trivy; install_trufflehog
             ;;
         esac
