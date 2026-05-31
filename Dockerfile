@@ -8,7 +8,7 @@ FROM python:3.11-slim
 
 # Pinned for reproducible images (override at build time with --build-arg)
 ARG GITLEAKS_VERSION=8.18.4
-ARG TRIVY_VERSION=0.69.1
+ARG TRIVY_VERSION=0.70.0
 ARG TRUFFLEHOG_VERSION=3.63.7
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

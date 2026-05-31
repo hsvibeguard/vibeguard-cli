@@ -106,9 +106,9 @@ runs:
 
         # Pinned binary scanner versions (deterministic CI)
         GITLEAKS_VERSION="8.18.4"
-        TRIVY_VERSION="0.69.1"
+        TRIVY_VERSION="0.70.0"
         TRUFFLEHOG_VERSION="3.63.7"
-        GRYPE_VERSION="0.86.1"
+        GRYPE_VERSION="0.112.0"
 
         install_gitleaks() {
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
