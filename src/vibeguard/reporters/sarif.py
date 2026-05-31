@@ -47,7 +47,20 @@ def _build_rule(finding: Finding, index: int) -> dict[str, Any]:
     return rule
 
 
-def _build_result(finding: Finding, rule_index: int) -> dict[str, Any]:
+def _rel_uri(file_path: str, repo_root: str) -> str:
+    """Return a repo-root-relative, forward-slashed URI.
+
+    GitHub Code Scanning drops results whose artifactLocation URIs are absolute
+    (or otherwise not relative to the repo root), so normalize here.
+    """
+    path = (file_path or "").replace("\\", "/")
+    root = (repo_root or "").replace("\\", "/").rstrip("/")
+    if root and path.startswith(root):
+        path = path[len(root):]
+    return path.lstrip("/")
+
+
+def _build_result(finding: Finding, rule_index: int, repo_root: str = "") -> dict[str, Any]:
     """Build a SARIF result object from a finding."""
     result: dict[str, Any] = {
         "ruleId": finding.rule_id,
@@ -58,8 +71,7 @@ def _build_result(finding: Finding, rule_index: int) -> dict[str, Any]:
             {
                 "physicalLocation": {
                     "artifactLocation": {
-                        "uri": finding.file_path,
-                        "uriBaseId": "%SRCROOT%",
+                        "uri": _rel_uri(finding.file_path, repo_root),
                     },
                     "region": {
                         "startLine": finding.line_start,
@@ -130,7 +142,7 @@ def to_sarif(result: ScanResult, include_suppressed: bool = False) -> dict[str, 
     for finding in findings_to_export:
         key = f"{finding.scanner}:{finding.rule_id}"
         rule_index = rule_indices[key]
-        results.append(_build_result(finding, rule_index))
+        results.append(_build_result(finding, rule_index, result.repo_root))
 
     # Build invocation
     invocation: dict[str, Any] = {
@@ -163,11 +175,6 @@ def to_sarif(result: ScanResult, include_suppressed: bool = False) -> dict[str, 
                 },
                 "invocations": [invocation],
                 "results": results,
-                "originalUriBaseIds": {
-                    "%SRCROOT%": {
-                        "uri": f"file:///{result.repo_root.replace(chr(92), '/')}/",
-                    }
-                },
             }
         ],
     }
