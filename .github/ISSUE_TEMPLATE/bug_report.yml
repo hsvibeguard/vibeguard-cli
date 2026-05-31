@@ -1,0 +1,35 @@
+name: Bug report
+description: Something broke, or a finding looks wrong
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you ran and what went wrong.
+      placeholder: "vibeguard scan . -> ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: "vibeguard --version, or the Action / Docker tag"
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you running it?
+      options:
+        - CLI (pip)
+        - GitHub Action
+        - Docker
+        - pre-commit
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "vibeguard doctor output (if relevant)"
+      render: shell

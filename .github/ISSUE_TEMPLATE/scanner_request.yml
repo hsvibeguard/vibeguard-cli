@@ -1,0 +1,20 @@
+name: Scanner request
+description: Suggest a scanner VibeGuard should orchestrate
+labels: ["scanner-request"]
+body:
+  - type: input
+    id: scanner
+    attributes:
+      label: Which scanner?
+      placeholder: "e.g. osv-scanner, kics"
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Project link
+  - type: textarea
+    id: why
+    attributes:
+      label: What would it add?
+      description: Languages or categories the current set misses.
