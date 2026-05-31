@@ -6,6 +6,8 @@
 [![CI](https://github.com/hsvibeguard/vibeguard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/hsvibeguard/vibeguard-cli/actions/workflows/ci.yml)
 [![GitHub stars](https://img.shields.io/github/stars/hsvibeguard/vibeguard-cli?style=social)](https://github.com/hsvibeguard/vibeguard-cli)
 
+<p align="center"><img src="docs/demo.gif" alt="VibeGuard scanning a repo" width="820"></p>
+
 **Unified security scanner orchestrator for local repositories.**
 
 Run **Semgrep, Bandit, Checkov, Gitleaks, Trivy & TruffleHog** with one command — plus ecosystem scanners auto-detected per repo — for one normalized score, deduplicated findings, SARIF for GitHub Code Scanning, and AI-powered fix suggestions.
