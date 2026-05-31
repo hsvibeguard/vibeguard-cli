@@ -18,8 +18,8 @@ jobs:
           GL=8.18.4; curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GL}/gitleaks_${GL}_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
           TV=0.70.0; curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TV}/trivy_${TV}_Linux-64bit.tar.gz" | sudo tar -xz -C /usr/local/bin trivy
           TH=3.63.7; curl -sSfL "https://github.com/trufflesecurity/trufflehog/releases/download/v${TH}/trufflehog_${TH}_linux_amd64.tar.gz" | sudo tar -xz -C /usr/local/bin trufflehog
-          mkdir -p /tmp/vgdemo
-          printf 'import os\n\n# hardcoded secret\npassword = "hunter2"\n\n\ndef run(user_cmd):\n    # shell injection\n    os.system("echo " + user_cmd)\n' > /tmp/vgdemo/app.py
+          mkdir -p "$HOME/myapp"
+          printf 'import os\n\n# hardcoded secret\npassword = "hunter2"\n\n\ndef run(user_cmd):\n    # shell injection\n    os.system("echo " + user_cmd)\n' > "$HOME/myapp/app.py"
           vibeguard --version
 
       - name: Install VHS + ttyd (Charm apt repo; ffmpeg is preinstalled)

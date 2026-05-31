@@ -6,17 +6,19 @@ Output demo.gif
 Set Shell "bash"
 Set FontSize 20
 Set Width 1200
-Set Height 700
+Set Height 800
 Set Theme "Dracula"
 Set Padding 24
 Set TypingSpeed 55ms
 
+# Unset CI vars so vibeguard renders its full (non-CI) output, not the quiet one-liner.
 Hide
-Type "cd /tmp/vgdemo" Enter
+Type "unset CI GITHUB_ACTIONS GITLAB_CI JENKINS_URL CIRCLECI TRAVIS VIBEGUARD_CI" Enter
+Type "cd ~/myapp" Enter
 Type "clear" Enter
 Show
 
 Type "vibeguard scan . --pack core"
 Sleep 800ms
 Enter
-Sleep 18s
+Sleep 20s
