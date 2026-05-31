@@ -181,9 +181,11 @@ runs:
           CMD="$CMD --badge \"${INPUT_BADGE_PATH}\""
         fi
 
-        # Capture JSON on stdout; keep stderr OUT of the JSON file
+        # Capture JSON on stdout; keep stderr out of the JSON file.
+        # Unset GITHUB_ACTIONS so --ci does NOT auto-emit ::error:: annotations
+        # to stdout, which would corrupt the JSON we parse for metrics.
         echo "Running: $CMD"
-        eval "$CMD" > "${INPUT_JSON_FILE}" 2> scan-stderr.log
+        ( unset GITHUB_ACTIONS; eval "$CMD" ) > "${INPUT_JSON_FILE}" 2> scan-stderr.log
         EXIT_CODE=$?
 
         echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT

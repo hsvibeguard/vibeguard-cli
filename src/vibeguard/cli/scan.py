@@ -477,12 +477,14 @@ def scan(
 
     # Output results based on format
     if output == "json":
-        console.print(result.model_dump_json(indent=2))
+        # Plain print (not Rich) so machine-readable output is never line-wrapped
+        # when stdout is redirected/non-TTY, which corrupts the JSON/SARIF.
+        print(result.model_dump_json(indent=2))
     elif output == "sarif":
         sarif_data = to_sarif(result)
-        console.print(json.dumps(sarif_data, indent=2))
+        print(json.dumps(sarif_data, indent=2))
     elif output == "html":
-        console.print(to_html(result))
+        print(to_html(result))
     elif output == "pdf":
         try:
             pdf_path = to_pdf(result)

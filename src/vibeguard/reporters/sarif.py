@@ -37,7 +37,7 @@ def _build_rule(finding: Finding, index: int) -> dict[str, Any]:
         },
         "properties": {
             "security-severity": SEVERITY_TO_SCORE[finding.severity],
-            "tags": ["security", finding.category.value, finding.scanner],
+            "tags": list(dict.fromkeys(["security", finding.category.value, finding.scanner])),
         },
     }
 

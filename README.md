@@ -94,7 +94,7 @@ jobs:
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/hsvibeguard/vibeguard-cli
-    rev: v1.1.5
+    rev: v1.1.6
     hooks:
       - id: vibeguard
         additional_dependencies: ["semgrep", "bandit", "checkov"]
