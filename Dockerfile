@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # VibeGuard in the main env; scanners isolated via pipx because checkov pins
 # click==8.1.8, incompatible with vibeguard's typer (needs click>=8.2).
 ENV PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin
-RUN pip install --no-cache-dir vibeguard-cli pipx \
+RUN pip install --no-cache-dir vibeguard-cli==1.1.8 pipx \
     && pipx install semgrep \
     && pipx install bandit \
     && pipx install checkov
