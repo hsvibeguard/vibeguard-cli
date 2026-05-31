@@ -1,0 +1,20 @@
+name: Self Scan
+# Dogfood: scan VibeGuard with VibeGuard's own published Action.
+# Doubles as a live usage example + keeps the Security tab + badge current.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  scan:
+    name: Scan VibeGuard with VibeGuard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hsvibeguard/vibeguard-cli@v1
+        with:
+          scanners: broad
+          threshold: 0        # report only; never fail the dogfood run
