@@ -108,6 +108,30 @@ The image ships with the scanners baked in — no install step:
 docker run --rm -v "$(pwd):/repo" ghcr.io/hsvibeguard/vibeguard-cli
 ```
 
+> **Copy-paste workflows** for Python and Next.js projects are in [`examples/`](examples/).
+
+## What VibeGuard is NOT
+
+- **Not a new scanner.** It orchestrates existing, battle-tested tools (Semgrep, Trivy, Gitleaks, Bandit, Checkov, TruffleHog) — it doesn't reinvent detection.
+- **Not a replacement for specialist tools.** Need deep SAST tuning? Run Semgrep directly. VibeGuard's value is unifying, deduping, and scoring — not out-detecting the specialists.
+- **Not a security guarantee.** A passing score means "no findings from the configured scanners," not "secure." Security isn't a single number.
+- **Not a cloud service for your code.** Scanning runs locally / in your CI — your source never leaves your machine.
+
+## VibeGuard vs. running the scanners yourself
+
+You can absolutely run Semgrep, Trivy, Gitleaks, etc. directly — VibeGuard just removes the glue work:
+
+| | Run them separately | VibeGuard |
+|---|---|---|
+| Install & config | 6 tools, 6 configs | one command / one Action |
+| Output | 6 formats | one normalized schema |
+| Duplicate findings | manual | deduped across scanners |
+| Prioritization | per-tool severities | one 0–100 score + grade |
+| CI gating | wire each yourself | one `threshold:` |
+| Security tab | upload each SARIF | one SARIF |
+
+If you only use a single scanner, you may not need VibeGuard — the value shows up once you run several.
+
 ## Commands
 
 | Command | Description | Tier |
@@ -212,9 +236,17 @@ vibeguard apply .vibeguard/patches/<finding-id>.patch
 
 Supported providers: OpenAI, Anthropic, Google, Azure, Mistral, Groq
 
+## Known limitations
+
+- **CI mode runs only installed scanners.** `--ci` is deterministic and does *not* auto-install tools. The GitHub Action installs a pinned set for you, but a raw `vibeguard scan . --ci` runs only what's already present.
+- **The score is a heuristic.** It's a triage/gating aid (deduct per severity), not a calibrated risk model — use it for trends and thresholds, not as an absolute verdict.
+- **Coverage varies by language.** Semgrep is broad; some scanners are ecosystem-specific (gosec for Go, pip-audit for Python, cargo-audit for Rust).
+- **First CI run is slower** (installs + binary downloads). Cache `~/.vibeguard/bin` to speed subsequent runs.
+- **Triage is conservative.** Findings in test fixtures, vendored, or temp paths may be auto-suppressed — use `--no-default-ignore` to see everything.
+
 ## Contributing
 
-Contributions are welcome! Open an issue or PR to add a scanner or parser.
+Contributions are welcome! See **[CONTRIBUTING.md](CONTRIBUTING.md)** — adding a scanner is usually a small manifest + parser. For security issues, see **[SECURITY.md](SECURITY.md)**.
 
 ## License
 

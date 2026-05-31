@@ -1,0 +1,27 @@
+# VibeGuard security scan for a Next.js / JavaScript / TypeScript project.
+# Copy to .github/workflows/security.yml
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  vibeguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hsvibeguard/vibeguard-cli@v1
+        with:
+          # Semgrep covers JS/TS; Trivy scans your npm dependencies;
+          # Gitleaks + TruffleHog catch committed secrets.
+          scanners: broad
+          # Start report-only so the first run establishes a baseline,
+          # then raise the threshold once you've triaged the findings.
+          threshold: 0

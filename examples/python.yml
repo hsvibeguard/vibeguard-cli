@@ -1,0 +1,25 @@
+# VibeGuard security scan for a Python project.
+# Copy to .github/workflows/security.yml
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF to the Security tab
+
+jobs:
+  vibeguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hsvibeguard/vibeguard-cli@v1
+        with:
+          # broad = Semgrep + Bandit + Checkov + Gitleaks + Trivy + TruffleHog
+          scanners: broad
+          # Fail the build if the security score drops below 70 (0 = never fail).
+          threshold: 70
