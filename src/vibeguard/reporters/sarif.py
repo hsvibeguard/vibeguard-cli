@@ -44,6 +44,10 @@ def _build_rule(finding: Finding, index: int) -> dict[str, Any]:
     if finding.cwe:
         rule["properties"]["tags"].append(f"external/cwe/{finding.cwe}")
 
+    # First reference becomes the rule's help link (where GitHub wants it).
+    if finding.references:
+        rule["helpUri"] = finding.references[0]
+
     return rule
 
 
@@ -92,16 +96,10 @@ def _build_result(finding: Finding, rule_index: int, repo_root: str = "") -> dic
             "text": finding.code_snippet[:1024]
         }
 
-    # Add references as related locations
-    if finding.references:
-        result["relatedLocations"] = []
-        for i, ref in enumerate(finding.references[:5]):  # Limit to 5 refs
-            result["relatedLocations"].append(
-                {
-                    "id": i,
-                    "message": {"text": ref},
-                }
-            )
+    # NOTE: references are exposed via the rule's helpUri (see _build_rule).
+    # They must NOT be emitted as relatedLocations — GitHub Code Scanning
+    # requires every relatedLocation to have a physicalLocation, and a bad one
+    # fails the ENTIRE analysis ("buildRelatedLocations: expected physical location").
 
     return result
 
